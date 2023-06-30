@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Snake</title>
+</head>
+<body>
+    <canvas id="gameCanvas" width="400" height="400"></canvas>
+    <div id="gameScore">0</div>
+    <select id="selectSpeed">
+        <option value="200">200</option>
+        <option value="500">500</option>
+        <option value="1000">1000</option>
+        <option value="2000">2000</option>
+    </select>
+    <script>
+        // init canvas
+        const gameCanvas = document.getElementById("gameCanvas");
+        const ctx = gameCanvas.getContext("2d");
+
+        const gameScore = document.getElementById("gameScore");
+
+        const selectSpeed = document.getElementById("selectSpeed");
+        selectSpeed.addEventListener("change", function() {
+            localStorage.setItem("speed", this.value);
+        })
+
+        let snake = [
+            { x: 200, y: 200 },
+            { x: 180, y: 200 },
+            { x: 160, y: 200 },
+            { x: 140, y: 200 }
+        ];
+
+        let movementX = 20;
+        let movementY = 0;
+        let speed = localStorage.getItem("speed") || 200;
+        let score = 0;
+
+        function drawCanvas() {
+            // background
+            ctx.fillStyle = "#7a9d03";
+            ctx.fillRect(0, 0, 400, 400);
+            // border
+            ctx.strokeStyle = "#000";
+            ctx.strokeRect(0, 0, 400, 400);
+        }
+
+        function drawSnake() {
+            ctx.fillStyle = "#000";
+            snake.forEach(function(ele) {
+                ctx.fillRect(ele.x, ele.y, 20, 20);
+            })
+        }
+
+        function moveSnake() {
+            let head;
+            if(snake[0].x == 400) {
+                head = { x: 0, y: snake[0].y };
+            } else if (snake[0].x == -20) {
+                head = { x: 380, y: snake[0].y };
+            } else if (snake[0].y == 400) {
+                head = { x: snake[0].x, y: 0 };
+            } else if (snake[0].y == -20) {
+                head = { x: snake[0].x, y: 380 };
+            } else {
+                head = { x: snake[0].x + movementX, y: snake[0].y + movementY };
+            }
+            snake.unshift(head);
+            if(snake[0].x === foodX && snake[0].y === foodY) {
+                setScore(score += 100)
+                generateFood();
+            } else {
+                snake.pop();
+            }
+        }
+
+        function setScore(score) {
+            gameScore.innerHTML = `<strong>${score}</strong>`;
+        }
+
+
+        document.addEventListener("keydown", function(e) {
+            switch(e.keyCode) {
+                case 38: // up
+                    movementX = 0;
+                    movementY = -20;
+                break;
+                case 40: // down
+                    movementX = 0;
+                    movementY = 20;
+                break;
+                case 39: // right
+                    movementX = 20;
+                    movementY = 0;
+                break;
+                case 37: // left
+                    movementX = -20;
+                    movementY = 0;
+                break;
+            }
+        })
+
+        function random(min, max) {
+            return Math.round((Math.random() * (max-min) + min) /20) * 20;
+        }
+
+        let foodX = random(0, 380);
+        let foodY = random(0, 380);
+
+        function generateFood() {
+            foodX = random(0, 380);
+            foodY = random(0, 380);
+            snake.forEach(function(ele) {
+                if(ele.x == foodX && ele.y == foodY) {
+                    generateFood();
+                }
+            })
+        }
+
+        function drawFood() {
+            ctx.fillStyle = "red";
+            ctx.fillRect(foodX, foodY, 20, 20);
+        }
+
+        function start() {
+            drawCanvas();
+            drawFood();
+            drawSnake();
+            setTimeout( () => {
+                moveSnake();
+                start();
+            }, speed);
+        }
+        start();
+
+    </script>
+</body>
+</html>
